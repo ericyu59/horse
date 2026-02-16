@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金馬傳說 - 1-48 隨機拉霸</title>
+    <style>
+        :root {
+            --chrome: linear-gradient(145deg, #e6e6e6, #999);
+            --gold-glow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        body {
+            background: #0a0a0a;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* 核心馬頭容器 */
+        .game-wrapper {
+            position: relative;
+            width: 800px;
+            height: 800px;
+            /* 請將此處連結替換為你實際的馬頭圖片路徑 */
+            background: url('https://img.freepik.com/free-photo/shiny-metal-horse-statue-casino_23-2151126162.jpg') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* 拉霸數字區：精確定位在馬嘴位置 */
+        .mouth-slot {
+            position: absolute;
+            top: 58%; /* 根據圖片微調此座標 */
+            left: 48%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #ffd700;
+            border-radius: 5px;
+            box-shadow: var(--gold-glow);
+        }
+
+        .digit-box {
+            width: 60px;
+            height: 90px;
+            background: #fff;
+            color: #000;
+            font-size: 60px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* 3D 立體拉桿設計 */
+        .lever-system {
+            position: absolute;
+            right: 50px;
+            top: 350px;
+            width: 100px;
+            height: 300px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .lever-arm {
+            width: 12px;
+            height: 180px;
+            background: var(--chrome);
+            margin: 0 auto;
+            border-radius: 6px;
+            transform-origin: bottom center;
+            transition: transform 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            position: relative;
+        }
+
+        .lever-ball {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000);
+            border-radius: 50%;
+            position: absolute;
+            top: -50px;
+            left: -24px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+        }
+
+        .lever-base {
+            width: 40px;
+            height: 40px;
+            background: #222;
+            margin: -10px auto;
+            border-radius: 50%;
+        }
+
+        /* 動畫類別 */
+        .pull-active { transform: rotateX(70deg) translateY(50px); }
+        .blur-anim { animation: fast-roll 0.1s infinite; }
+
+        @keyframes fast-roll {
+            0% { transform: translateY(-10px); filter: blur(3px); }
+            100% { transform: translateY(10px); filter: blur(3px); }
+        }
+
+        h2 { position: absolute; top: 20px; color: #ffd700; text-shadow: 0 0 10px #000; }
+    </style>
+</head>
+<body>
+
+    <h2>🐎 GOLDEN CHANCE GALLOP</h2>
+
+    <div class="game-wrapper">
+        <div class="mouth-slot">
+            <div id="d1" class="digit-box">0</div>
+            <div id="d2" class="digit-box">0</div>
+            <div id="d3" class="digit-box">0</div>
+        </div>
+
+        <div class="lever-system" onclick="spin()">
+            <div id="arm" class="lever-arm">
+                <div class="lever-ball"></div>
+            </div>
+            <div class="lever-base"></div>
+        </div>
+    </div>
+
+    <audio id="sound-neigh" src="https://actions.google.com/sounds/v1/animals/horse_whinny.ogg"></audio>
+    <audio id="sound-gallop" src="https://actions.google.com/sounds/v1/foley/horse_gallop.ogg" loop></audio>
+    <audio id="sound-win" src="https://actions.google.com/sounds/v1/animals/horse_neigh.ogg"></audio>
+
+    <script>
+        const d1 = document.getElementById('d1');
+        const d2 = document.getElementById('d2');
+        const d3 = document.getElementById('d3');
+        const arm = document.getElementById('arm');
+        
+        const sndNeigh = document.getElementById('sound-neigh');
+        const sndGallop = document.getElementById('sound-gallop');
+        const sndWin = document.getElementById('sound-win');
+
+        let isRunning = false;
+
+        function spin() {
+            if (isRunning) return;
+            isRunning = true;
+
+            // 1. 下拉動作 + 初始馬鳴
+            arm.classList.add('pull-active');
+            sndNeigh.play();
+
+            setTimeout(() => {
+                arm.classList.remove('pull-active');
+                
+                // 2. 開始滾動 + 馬蹄聲
+                sndGallop.play();
+                d1.classList.add('blur-anim');
+                d2.classList.add('blur-anim');
+                d3.classList.add('blur-anim');
+
+                // 產生 1-48 隨機數
+                const finalNum = Math.floor(Math.random() * 48) + 1;
+                const str = finalNum.toString().padStart(3, '0');
+
+                // 3. 依序停止 (左 -> 中 -> 右)
+                setTimeout(() => stopDigit(d1, str[0]), 1200);
+                setTimeout(() => stopDigit(d2, str[1]), 2000);
+                setTimeout(() => {
+                    stopDigit(d3, str[2]);
+                    finish();
+                }, 2800);
+
+            }, 400);
+        }
+
+        function stopDigit(el, val) {
+            el.classList.remove('blur-anim');
+            el.innerText = val;
+        }
+
+        function finish() {
+            sndGallop.pause();
+            sndGallop.currentTime = 0;
+            sndWin.volume = 1.0;
+            sndWin.play(); // 響亮的結束鳴叫
+            isRunning = false;
+        }
+    </script>
+</body>
+</html>
