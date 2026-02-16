@@ -7,7 +7,7 @@
     <style>
         :root {
             --chrome: linear-gradient(145deg, #e6e6e6, #999);
-            --gold-glow: 0 0 20px rgba(255, 215, 0, 0.5);
+            --gold-glow: 0 0 20px rgba(255, 215, 0, 0.6);
         }
 
         body {
@@ -15,10 +15,11 @@
             margin: 0;
             height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
         }
 
         /* 核心馬頭容器 */
@@ -26,7 +27,6 @@
             position: relative;
             width: 800px;
             height: 800px;
-            /* 請將此處連結替換為你實際的馬頭圖片路徑 */
             background: url('horse.png') no-repeat center center;
             background-size: contain;
         }
@@ -34,22 +34,24 @@
         /* 拉霸數字區：精確定位在馬嘴位置 */
         .mouth-slot {
             position: absolute;
-            top: 72%; /* 根據圖片微調此座標 */
+            top: 72%; 
             left: 55%;
-            transform: translate(-50%, -50%)scale(1.5); /* 0.8 表示整體縮小到 80% */;
+            /* 修正語法：合併 scale 與 translate */
+            transform: translate(-50%, -50%) scale(1.5); 
             display: flex;
             gap: 8px;
-            padding: 10px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #ffd700;
-            border-radius: 5px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 3px solid #ffd700;
+            border-radius: 8px;
             box-shadow: var(--gold-glow);
+            z-index: 5;
         }
 
         .digit-box {
             width: 60px;
             height: 90px;
-            background: #fff;
+            background: linear-gradient(to bottom, #fff 0%, #ddd 50%, #fff 100%);
             color: #000;
             font-size: 60px;
             font-weight: bold;
@@ -58,13 +60,14 @@
             align-items: center;
             border-radius: 4px;
             overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
         /* 3D 立體拉桿設計 */
         .lever-system {
             position: absolute;
-            right: 50px;
-            top: 350px;
+            right: 80px;
+            top: 320px;
             width: 100px;
             height: 300px;
             cursor: pointer;
@@ -72,45 +75,52 @@
         }
 
         .lever-arm {
-            width: 12px;
-            height: 180px;
+            width: 14px;
+            height: 200px;
             background: var(--chrome);
             margin: 0 auto;
-            border-radius: 6px;
+            border-radius: 7px;
             transform-origin: bottom center;
-            transition: transform 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transition: transform 0.2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
             position: relative;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
         }
 
         .lever-ball {
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000);
             border-radius: 50%;
             position: absolute;
-            top: -50px;
-            left: -24px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            top: -55px;
+            left: -25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.7);
         }
 
         .lever-base {
-            width: 40px;
-            height: 40px;
+            width: 46px;
+            height: 46px;
             background: #222;
-            margin: -10px auto;
+            margin: -15px auto;
             border-radius: 50%;
+            border: 2px solid #444;
         }
 
         /* 動畫類別 */
-        .pull-active { transform: rotateX(70deg) translateY(50px); }
+        .pull-active { transform: rotateX(65deg) scaleY(0.6); }
         .blur-anim { animation: fast-roll 0.1s infinite; }
 
         @keyframes fast-roll {
-            0% { transform: translateY(-10px); filter: blur(3px); }
-            100% { transform: translateY(10px); filter: blur(3px); }
+            0% { transform: translateY(-8px); filter: blur(4px); opacity: 0.8; }
+            100% { transform: translateY(8px); filter: blur(4px); opacity: 0.8; }
         }
 
-        h2 { position: absolute; top: 20px; color: #ffd700; text-shadow: 0 0 10px #000; }
+        h2 { 
+            margin-bottom: 10px;
+            color: #ffd700; 
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            letter-spacing: 3px;
+        }
     </style>
 </head>
 <body>
@@ -132,9 +142,9 @@
         </div>
     </div>
 
-    <audio id="sound-neigh" src="https://actions.google.com/sounds/v1/animals/horse_whinny.ogg"></audio>
-    <audio id="sound-gallop" src="https://actions.google.com/sounds/v1/foley/horse_gallop.ogg" loop></audio>
-    <audio id="sound-win" src="https://actions.google.com/sounds/v1/animals/horse_neigh.ogg"></audio>
+    <audio id="sound-neigh" src="neigh.mp3"></audio>
+    <audio id="sound-gallop" src="gallop.mp3" loop></audio>
+    <audio id="sound-win" src="win.mp3"></audio>
 
     <script>
         const d1 = document.getElementById('d1');
@@ -152,15 +162,20 @@
             if (isRunning) return;
             isRunning = true;
 
-            // 1. 下拉動作 + 初始馬鳴
+            // 1. 下拉動作 (拉桿縮短並旋轉)
             arm.classList.add('pull-active');
-            sndNeigh.play();
+            
+            // 播放起步馬鳴 (重置進度以確保每次都響)
+            sndNeigh.currentTime = 0;
+            sndNeigh.play().catch(e => console.log("音效播放被阻擋，請先與網頁互動"));
 
             setTimeout(() => {
                 arm.classList.remove('pull-active');
                 
-                // 2. 開始滾動 + 馬蹄聲
+                // 2. 開始滾動 + 馬蹄奔跑聲
+                sndGallop.currentTime = 0;
                 sndGallop.play();
+                
                 d1.classList.add('blur-anim');
                 d2.classList.add('blur-anim');
                 d3.classList.add('blur-anim');
@@ -169,7 +184,7 @@
                 const finalNum = Math.floor(Math.random() * 48) + 1;
                 const str = finalNum.toString().padStart(3, '0');
 
-                // 3. 依序停止 (左 -> 中 -> 右)
+                // 3. 依序停止 (增加刺激感的時間差)
                 setTimeout(() => stopDigit(d1, str[0]), 1200);
                 setTimeout(() => stopDigit(d2, str[1]), 2000);
                 setTimeout(() => {
@@ -186,10 +201,14 @@
         }
 
         function finish() {
+            // 停止馬蹄聲
             sndGallop.pause();
-            sndGallop.currentTime = 0;
+            
+            // 播放超響亮結尾鳴叫
+            sndWin.currentTime = 0;
             sndWin.volume = 1.0;
-            sndWin.play(); // 響亮的結束鳴叫
+            sndWin.play();
+            
             isRunning = false;
         }
     </script>
