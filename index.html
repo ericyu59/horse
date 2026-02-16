@@ -22,7 +22,6 @@
             font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
         }
 
-        /* 核心馬頭容器 */
         .game-wrapper {
             position: relative;
             width: 800px;
@@ -31,7 +30,6 @@
             background-size: contain;
         }
 
-        /* 拉霸數字區：精確定位在馬嘴位置 */
         .mouth-slot {
             position: absolute;
             top: 72%; 
@@ -62,7 +60,6 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* 3D 立體拉桿設計 */
         .lever-system {
             position: absolute;
             right: 80px;
@@ -105,7 +102,6 @@
             border: 2px solid #444;
         }
 
-        /* 動畫類別 */
         .pull-active { transform: rotateX(65deg) scaleY(0.6); }
         .blur-anim { animation: fast-roll 0.1s infinite; }
 
@@ -161,7 +157,6 @@
             if (isRunning) return;
             isRunning = true;
 
-            // 1. 下拉動作
             arm.classList.add('pull-active');
             
             sndNeigh.currentTime = 0;
@@ -170,7 +165,6 @@
             setTimeout(() => {
                 arm.classList.remove('pull-active');
                 
-                // 2. 開始滾動
                 sndGallop.currentTime = 0;
                 sndGallop.play();
                 
@@ -181,18 +175,18 @@
                 const finalNum = Math.floor(Math.random() * 48) + 1;
                 const str = finalNum.toString().padStart(3, '0');
 
-                // --- 修改這裡的時間點 ---
-                // 第一位數：1.5秒後停 (1500ms)
-                setTimeout(() => stopDigit(d1, str[0]), 1500);
+                // --- 調整後的時間點 (總長 2 秒) ---
+                // 第一位數：1.0 秒後停 (1000ms)
+                setTimeout(() => stopDigit(d1, str[0]), 1000);
                 
-                // 第二位數：2.2秒後停 (2200ms)
-                setTimeout(() => stopDigit(d2, str[1]), 2200);
+                // 第二位數：1.5 秒後停 (1500ms)
+                setTimeout(() => stopDigit(d2, str[1]), 1500);
                 
-                // 第三位數：3.0秒後停 (3000ms)
+                // 第三位數：2.0 秒後停 (2000ms)
                 setTimeout(() => {
                     stopDigit(d3, str[2]);
                     finish();
-                }, 3000);
+                }, 2000);
 
             }, 400);
         }
